@@ -6,21 +6,25 @@ const Discord = require('discord.js')
 const help = require('./commands/help')
 const join = require('./commands/join')
 const leave = require('./commands/leave')
-const play = require('./commands/play')
+const { play } = require('./commands/play')
 const stop = require('./commands/stop')
 const pause = require('./commands/pause')
 const resume = require('./commands/resume')
+const next = require('./commands/next')
+const queue = require('./commands/queue')
 
 const client = new Discord.Client()
 
-const TOKEN = process.env.TOKEN
+const DISCORD_TOKEN = process.env.DISCORD_TOKEN
 const BOTName = process.env.BOT_NAME
 const prefix = process.env.PREFIX
 
 const servers = {
   server: {
     connection: null,
-    dispatcher: null
+    dispatcher: null,
+    queue: [],
+    imPlaying: false
   }
 }
 
@@ -44,22 +48,31 @@ client.on('ready', () => {
 })
 
 client.on('message', async message => {
+  const options = { message, prefix, BOTName, servers, automaticJoin, client }
+
   if (!message.guild) return
   if (!message.content.startsWith(prefix)) return
-
-  help({ message, prefix, BOTName })
+  
+  help(options)
+  
+  if (message.author.username !== "<I'm Mich/>" && message.author.username !== "light") {
+    message.channel.send(`**${BOTName}:** Somente meu criado **<I'm Mich/>** está podendo me utilizar por enquanto, aguarde até o meu lançamento. :)`)
+    return
+  }
 
   if (!message.member.voice.channel) {
      message.channel.send(`**${BOTName}:** Você precisa estar em um canal de voz.`)
      return
   }
 
-  join({ message, prefix, automaticJoin })
-  leave({ message, prefix, BOTName, servers })
-  play({ message, prefix, BOTName, servers, automaticJoin })
-  stop({ message, prefix, BOTName, servers })
-  pause({ message, prefix, BOTName, servers })
-  resume({ message, prefix, BOTName, servers })
+  join(options)
+  leave(options)
+  play(options)
+  stop(options)
+  pause(options)
+  resume(options)
+  next(options)
+  queue(options)
 })
 
-client.login(TOKEN)
+client.login(DISCORD_TOKEN)
